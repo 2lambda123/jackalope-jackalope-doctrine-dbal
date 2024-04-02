@@ -383,12 +383,17 @@ class Client extends BaseTransport implements QueryTransport, WritingInterface, 
 
         $params = $this->conn->getParams();
         if (isset($params['defaultTableOptions']['collate'])) {
-            return $this->caseSensitiveEncoding = $params['defaultTableOptions']['collate'];
+            $this->caseSensitiveEncoding = (('utf8mb4' === $params['charset'] ?? null) && ('utf8_bin' === $params['defaultTableOptions']['collate']))
+                ? 'utf8mb4_bin' // somehow dbal or mysql seem to hallucinate utf8_bin when it needs to be utf8mb4_bin
+                : $params['defaultTableOptions']['collate']
+            ;
+
+            return $this->caseSensitiveEncoding;
         }
-        if (!array_key_exists('charset', $params)) {
+        if (!array_key_exists('charset', $params) || !$params['charset']) {
             throw new \InvalidArgumentException('For MySQL, the Doctrine dbal connection must have either "collate" or "charset" configured. Alternatively, you can set the encoding with '.__CLASS__.'::setCaseSensitiveEncoding().');
         }
-        $charset = $params['charset'] ?? 'utf8';
+        $charset = $params['charset'];
 
         return $this->caseSensitiveEncoding = 'binary' === $charset ? $charset : $charset.'_bin';
     }
@@ -1696,7 +1701,7 @@ class Client extends BaseTransport implements QueryTransport, WritingInterface, 
             'path_prefix' => $srcAbsPath.'/%',
             'path' => $srcAbsPath,
             'workspace' => $this->workspaceName,
-            ]);
+        ]);
 
         /*
          * TODO: https://github.com/jackalope/jackalope-doctrine-dbal/pull/26/files#L0R1057

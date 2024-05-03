@@ -51,7 +51,7 @@ class CachedClient extends Client
 
         $this->caches = $caches;
         $this->keySanitizer = static function ($cacheKey) {
-            return str_replace(' ', '_', $cacheKey);
+            return str_replace([' ', ':'], '_', $cacheKey);
         };
     }
 

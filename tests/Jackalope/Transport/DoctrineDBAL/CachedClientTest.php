@@ -31,7 +31,7 @@ class CachedClientTest extends FunctionalTestCase
     public function testCacheHit()
     {
         $cache = new \stdClass();
-        $this->cacheMock->method('fetch')->with('nodes__/test,_tests')->willReturn($cache);
+        $this->cacheMock->method('fetch')->with('nodes|_|test,_tests')->willReturn($cache);
 
         $this->assertSame($cache, $this->transport->getNode('/test'));
     }
@@ -45,7 +45,7 @@ class CachedClientTest extends FunctionalTestCase
         $this->cacheMock
             ->method('fetch')
             ->with(self::callback(function ($arg) use (&$first) {
-                self::assertEquals($first ? 'nodetypes__a_0_{}' : 'node_types', $arg);
+                self::assertEquals($first ? 'nodetypes|_a|0|[]' : 'node_types', $arg);
                 $first = false;
 
                 return true;

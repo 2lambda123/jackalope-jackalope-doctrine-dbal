@@ -668,7 +668,13 @@ class CachedClient extends Client
     private function get(string $name, string $key)
     {
         if ($this->caches[$name] instanceof CacheInterface) {
-            return $this->caches[$name]->get($key);
+            $result = $this->caches[$name]->get($key);
+
+            if ($result === null) {
+                return false;
+            }
+
+            return $result;
         }
 
         return $this->caches[$name]->fetch($key);

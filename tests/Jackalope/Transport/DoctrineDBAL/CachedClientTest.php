@@ -31,29 +31,25 @@ class CachedClientTest extends FunctionalTestCase
     public function testCacheHit()
     {
         $cache = new \stdClass();
-        $this->cacheMock->method('fetch')->with('nodes|_|test,_tests')->willReturn($cache);
+        $this->cacheMock->method('fetch')->with('nodes_3A+_2Ftest_2C+tests')->willReturn($cache);
 
         $this->assertSame($cache, $this->transport->getNode('/test'));
     }
 
     /**
-     * The default key sanitizer replaces spaces with underscores
+     * The default key sanitizer keeps the cache key compatible with PSR16
      */
     public function testDefaultKeySanitizer()
     {
-        $first = true;
-        $this->cacheMock
-            ->method('fetch')
-            ->with(self::callback(function ($arg) use (&$first) {
-                self::assertEquals($first ? 'nodetypes|_a|0|[]' : 'node_types', $arg);
-                $first = false;
+        $client = $this->getClient($this->getConnection());
+        $reflection = new \ReflectionClass($client);
+        $keySanitizerProperty = $reflection->getProperty('keySanitizer');
+        $keySanitizerProperty->setAccessible(true);
+        $defaultKeySanitizer = $keySanitizerProperty->getValue($client);
 
-                return true;
-            }));
+        $result = $defaultKeySanitizer(' :{}().@/"\\'); // not allowed PSR16 keys
 
-        /** @var CachedClient $cachedClient */
-        $cachedClient = $this->transport;
-        $cachedClient->getNodeTypes();
+        $this->assertEquals('+_3A_7B_7D_28_29|_40_2F_22_5C', $result);
     }
 
     public function testCustomkeySanitizer()

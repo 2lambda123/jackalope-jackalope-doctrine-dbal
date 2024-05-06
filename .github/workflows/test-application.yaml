@@ -75,6 +75,10 @@ jobs:
                   extensions: "pdo, pdo_sqlite, pdo_mysql, mysql, pdo_pgsql"
                   tools: 'composer:v2'
 
+            - name: Require dependencies
+              if: ${{ matrix.php == '8.0' }}
+              run: composer require "psr/simple-cache:2.*" --no-update --dev
+
             - name: Install dependencies with Composer
               uses: ramsey/composer-install@v1
               with:

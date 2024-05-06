@@ -263,7 +263,7 @@ class CachedClient extends Client
         $cacheKey = "nodes: $path, ".$this->workspaceName;
         $cacheKey = $this->sanitizeKey($cacheKey);
 
-        if (false !== ($result = $this->get('nodes', $cacheKey))) {
+        if (null !== ($result = $this->get('nodes', $cacheKey))) {
             if ('ItemNotFoundException' === $result) {
                 throw new ItemNotFoundException("Item '$path' not found in workspace '$this->workspaceName'");
             }
@@ -323,7 +323,7 @@ class CachedClient extends Client
         $cacheKey = "id: $uuid, ".$workspaceName;
         $cacheKey = $this->sanitizeKey($cacheKey);
 
-        if (false !== ($result = $this->get('nodes', $cacheKey))) {
+        if (null !== ($result = $this->get('nodes', $cacheKey))) {
             if ('false' === $result) {
                 return false;
             }
@@ -499,7 +499,7 @@ class CachedClient extends Client
         $cacheKey = "nodes by uuid: $uuid, $this->workspaceName";
         $cacheKey = $this->sanitizeKey($cacheKey);
 
-        if (false !== ($result = $this->get('nodes', $cacheKey))) {
+        if (null !== ($result = $this->get('nodes', $cacheKey))) {
             if ('ItemNotFoundException' === $result) {
                 throw new ItemNotFoundException("no item found with uuid $uuid");
             }
@@ -564,7 +564,7 @@ class CachedClient extends Client
         $cacheKey = "nodes references: $path, $name, " . $this->workspaceName;
         $cacheKey = $this->sanitizeKey($cacheKey);
 
-        if (false !== ($result = $this->get('nodes', $cacheKey))) {
+        if (null !== ($result = $this->get('nodes', $cacheKey))) {
             return $result;
         }
 
@@ -612,7 +612,7 @@ class CachedClient extends Client
         $cacheKey = "query: {$query->getStatement()}, {$query->getLimit()}, {$query->getOffset()}, {$query->getLanguage()}, ".$this->workspaceName;
         $cacheKey = $this->sanitizeKey($cacheKey);
 
-        if (false !== ($result = $this->get('query', $cacheKey))) {
+        if (null !== ($result = $this->get('query', $cacheKey))) {
             return $result;
         }
 
@@ -668,15 +668,15 @@ class CachedClient extends Client
     private function get(string $name, string $key)
     {
         if ($this->caches[$name] instanceof CacheInterface) {
-            $result = $this->caches[$name]->get($key);
-
-            if ($result === null) {
-                return false;
-            }
-
-            return $result;
+            return $this->caches[$name]->get($key);
         }
 
-        return $this->caches[$name]->fetch($key);
+        $result = $this->caches[$name]->fetch($key);
+
+        if ($result === false) {
+            return null;
+        }
+
+        return $result;
     }
 }
